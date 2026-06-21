@@ -1,5 +1,7 @@
+import {COLORS as THEME_COLORS} from "./theme"
+
 export const COLORS = {
-  primary: "#2563eb",
-  secondary: "#16a34a",
-  background: "#f8fafc",
+  primary: THEME_COLORS.navy,
+  secondary: THEME_COLORS.green,
+  backgroud: THEME_COLORS.backgroud,
 };
