@@ -1,6 +1,10 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { AuthService, UserService } from "@/utils/services";
-import { setToken, clearToken, getToken, ApiError } from "@/utils/api";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import type { Usuario } from "@/types";
 
 interface AuthContextData {
@@ -14,65 +18,48 @@ interface AuthContextData {
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
+// ─── Usuário falso para testes ────────────────────────────────────────────────
+const MOCK_USER: Usuario = {
+  id: 1,
+  nome: "Romario Teste",
+  email: "romario@teste.com",
+  fotoPerfil: null,
+  perfil: "USER",
+  pontuacaoTotal: 120,
+  placaresExatos: 3,
+  criadoEm: new Date().toISOString(),
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(false);
   const [bootstrapping, setBootstrapping] = useState(true);
 
-  // Ao abrir o app, tenta restaurar a sessão a partir do token salvo
   useEffect(() => {
-    (async () => {
-      try {
-        const token = await getToken();
-        if (token) {
-          const perfil = await UserService.meuPerfil();
-          setUser(perfil);
-        }
-      } catch {
-        await clearToken();
-      } finally {
-        setBootstrapping(false);
-      }
-    })();
+    // Simula a verificação de sessão (sem AsyncStorage por enquanto)
+    const timer = setTimeout(() => setBootstrapping(false), 500);
+    return () => clearTimeout(timer);
   }, []);
 
   async function login(email: string, senha: string) {
     setLoading(true);
-    try {
-      const response = await AuthService.login(email, senha);
-      await setToken(response.token);
-      setUser(response.usuario);
-    } catch (err) {
-      if (err instanceof ApiError) throw err;
-      throw new ApiError("Não foi possível conectar ao servidor", 0);
-    } finally {
-      setLoading(false);
-    }
+    // Simula delay de rede
+    await new Promise((r) => setTimeout(r, 800));
+    setLoading(false);
+
+    // Qualquer email/senha funciona no modo simulado
+    setUser({ ...MOCK_USER, email });
   }
 
   async function cadastrar(nome: string, email: string, senha: string) {
     setLoading(true);
-    try {
-      const response = await AuthService.cadastrar(nome, email, senha);
-      await setToken(response.token);
-      setUser(response.usuario);
-    } catch (err) {
-      if (err instanceof ApiError) throw err;
-      throw new ApiError("Não foi possível conectar ao servidor", 0);
-    } finally {
-      setLoading(false);
-    }
+    await new Promise((r) => setTimeout(r, 800));
+    setLoading(false);
+    setUser({ ...MOCK_USER, nome, email });
   }
 
   async function logout() {
-    try {
-      await AuthService.logout();
-    } catch {
-      // mesmo se falhar no servidor, limpamos localmente
-    } finally {
-      await clearToken();
-      setUser(null);
-    }
+    setUser(null);
   }
 
   return (

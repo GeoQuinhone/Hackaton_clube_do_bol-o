@@ -1,68 +1,63 @@
-import { apiGet, apiPost, apiPut, apiDelete } from "./api";
-import type {LoginResponse, Usuario, Partida, Palpite, RankingItem, DashboardResumo,Fase,StatusPartida} from "@/types/index";
+import { apiFetch } from './api';
+import type {
+  AuthResponse,
+  DashboardResumo,
+  PagedResponse,
+  Partida,
+  Palpite,
+  RankingItem,
+  Usuario,
+} from '@/types';
 
-// RF-001 / RF-002 / RF-003 — Autenticação
 export const AuthService = {
   login: (email: string, senha: string) =>
-    apiPost<LoginResponse>("/auth/login", { email, senha }),
+    apiFetch<AuthResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, senha }),
+    }),
 
   cadastrar: (nome: string, email: string, senha: string) =>
-    apiPost<LoginResponse>("/auth/cadastro", { nome, email, senha }),
+    apiFetch<AuthResponse>('/auth/cadastrar', {
+      method: 'POST',
+      body: JSON.stringify({ nome, email, senha }),
+    }),
 
-  recuperarSenha: (email: string) =>
-    apiPost<void>("/auth/recuperar-senha", { email }),
-
-  logout: () => apiPost<void>("/auth/logout"),
+  logout: () => apiFetch<void>('/auth/logout', { method: 'POST' }),
 };
 
-// RF-004 / RF-006 — Perfil
 export const UserService = {
-  meuPerfil: () => apiGet<Usuario>("/usuarios/me"),
+  meuPerfil: () => apiFetch<Usuario>('/usuarios/me'),
 
-  atualizarPerfil: (data: { nome?: string; fotoPerfil?: string }) =>
-    apiPut<Usuario>("/usuarios/me", data),
+  atualizarPerfil: (dados: { nome?: string; fotoPerfil?: string }) =>
+    apiFetch<Usuario>('/usuarios/me', {
+      method: 'PUT',
+      body: JSON.stringify(dados),
+    }),
 
-  excluirConta: () => apiDelete<void>("/usuarios/me"),
+  excluirConta: () => apiFetch<void>('/usuarios/me', { method: 'DELETE' }),
 };
 
-// RF-010 / RF-011 / RF-012 / RF-013 — Partidas
 export const MatchService = {
-  listar: (filtros?: { fase?: Fase; status?: StatusPartida; data?: string }) => {
-    const params = new URLSearchParams();
-    if (filtros?.fase) params.set("fase", filtros.fase);
-    if (filtros?.status) params.set("status", filtros.status);
-    if (filtros?.data) params.set("data", filtros.data);
-    const query = params.toString();
-    return apiGet<Partida[]>(`/partidas${query ? `?${query}` : ""}`);
-  },
-
-  detalhe: (id: number) => apiGet<Partida>(`/partidas/${id}`),
-
-  proximas: () => apiGet<Partida[]>("/partidas/proximas"),
+  listar: () => apiFetch<Partida[]>('/partidas'),
 };
 
-// RF-020 / RF-021 / RF-023 / RF-024 — Palpites
 export const GuessService = {
-  registrar: (partidaId: number, golsMandante: number, golsVisitante: number) =>
-    apiPost<Palpite>("/palpites", { partidaId, golsMandante, golsVisitante }),
+  registrar: (partidaId: number, golsA: number, golsB: number) =>
+    apiFetch<Palpite>('/palpites', {
+      method: 'POST',
+      body: JSON.stringify({ partidaId, golsA, golsB }),
+    }),
 
-  editar: (palpiteId: number, golsMandante: number, golsVisitante: number) =>
-    apiPut<Palpite>(`/palpites/${palpiteId}`, { golsMandante, golsVisitante }),
-
-  meusPalpites: () => apiGet<Palpite[]>("/palpites/me"),
+  meusPalpites: () => apiFetch<Palpite[]>('/palpites/meus'),
 };
 
-// RF-032 / RF-033 / RF-034 — Ranking
 export const RankingService = {
-  geral: (page = 0, size = 50) =>
-    apiGet<{ content: RankingItem[]; totalPages: number; totalElements: number }>(
-      `/ranking?page=${page}&size=${size}`
-    ),
+  geral: (page: number, size: number) =>
+    apiFetch<PagedResponse<RankingItem>>(`/ranking/geral?page=${page}&size=${size}`),
 
-  minhaPosicao: () => apiGet<RankingItem>("/ranking/me"),
+  minhaPosicao: () => apiFetch<RankingItem>('/ranking/me'),
 };
 
-// Dashboard inicial do usuário comum (agrega próximas partidas + meus palpites + top ranking)
 export const DashboardService = {
-  resumo: () => apiGet<DashboardResumo>("/dashboard"),
+  resumo: () => apiFetch<DashboardResumo>('/dashboard/resumo'),
 };

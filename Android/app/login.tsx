@@ -1,18 +1,30 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Pressable, } from "react-native";
-import { Router } from "expo-router";
-import { Logo } from "./../components/Logo";
-import { AppInput } from "./../components/AppInput";
-import { useAuth } from "./../contexts/AuthContext";
-import { ApiError } from "./../utils/api";
-import { COLORS, FONTS, FONT_SIZE, SPACING, RADIUS } from "./../constants/theme";
-
+import {
+  View,
+  Text,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Pressable,
+} from "react-native";
+import { router } from "expo-router";
+import { Logo } from "@/components/Logo";
+import { AppInput } from "@/components/AppInput";
+import { AppButton } from "@/components/AppButton";
+import { useAuth } from "@/contexts/AuthContext";
+import { ApiError } from "@/utils/api";
+import { COLORS, FONTS, FONT_SIZE, SPACING, RADIUS } from "@/constants/theme";
 
 export default function Login() {
   const { login, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [errors, setErrors] = useState<{ email?: String; senha?: String; geral?: string }>({});
+  const [errors, setErrors] = useState<{
+    email?: string;
+    senha?: string;
+    geral?: string;
+  }>({});
 
   function validar() {
     const next: typeof errors = {};
@@ -35,7 +47,7 @@ export default function Login() {
             ? "E-mail ou senha incorretos"
             : error.message
           : "Não foi possível conectar ao servidor";
-      setErrors({ geral: message })
+      setErrors({ geral: message });
     }
   }
 
@@ -47,13 +59,14 @@ export default function Login() {
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
-        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.logoArea}>
           <Logo size="md" />
         </View>
 
-        <Text style={style.title}>Login</Text>
+        <Text style={styles.title}>Login</Text>
+
         <View style={styles.form}>
           <AppInput
             placeholder="Digite o seu Email"
@@ -80,21 +93,36 @@ export default function Login() {
             error={errors.senha}
           />
 
-          {!!errors.geral && <Text style={styles.geralError}>{errors.geral</Text>};
+          {!!errors.geral && (
+            <Text style={styles.geralError}>{errors.geral}</Text>
+          )}
 
           <View style={styles.actionsRow}>
             <View style={{ flex: 1 }}>
-              <AppButton tittle="Esqueci minha senha" variant "danger" onPress={() => { }}/>
+              <AppButton
+                title="Esqueci minha senha"
+                variant="ghost"
+                onPress={() => router.push("/forgot-password")}
+              />
             </View>
             <View style={{ flex: 1 }}>
-              <AppButton title="Entrar" variant="primary" onPress={handleEntrar} Loading={loading} />
+              <AppButton
+                title="Entrar"
+                variant="primary"
+                onPress={handleEntrar}
+                loading={loading}
+              />
             </View>
           </View>
         </View>
 
-        <Pressable style={styles.registerLink} onPress={() => router.push("/register")}>
-          <Text style={styles.registertext}>
-            Não tem uma conta? <Text style={styles.registerTextBold}>Cadastrar-se</Text>
+        <Pressable
+          style={styles.registerLink}
+          onPress={() => router.push("/register")}
+        >
+          <Text style={styles.registerText}>
+            Não tem uma conta?{" "}
+            <Text style={styles.registerTextBold}>Cadastrar-se</Text>
           </Text>
         </Pressable>
       </ScrollView>
@@ -112,7 +140,7 @@ const styles = StyleSheet.create({
   logoArea: {
     alignItems: "center",
     marginBottom: SPACING.xl,
-  }
+  },
   title: {
     fontFamily: FONTS.extraBold,
     fontSize: FONT_SIZE.xxl,
@@ -126,7 +154,7 @@ const styles = StyleSheet.create({
   actionsRow: {
     flexDirection: "row",
     gap: SPACING.md,
-    marginTop: SPACING.xs
+    marginTop: SPACING.xs,
   },
   geralError: {
     fontFamily: FONTS.medium,
@@ -141,6 +169,11 @@ const styles = StyleSheet.create({
   registerLink: {
     marginTop: SPACING.xxl,
     alignItems: "center",
+  },
+  registerText: {
+    fontFamily: FONTS.regular,
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.textSecondary,
   },
   registerTextBold: {
     fontFamily: FONTS.bold,

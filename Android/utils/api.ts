@@ -1,91 +1,72 @@
-import AsyncStorage from "@react-natica-async-storage/async-storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-//ajustar para o host que o spring boot estiver rodando
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000";
+/**
+ * Troque pelo IP do servidor Spring Boot:
+ *   Android Emulator  → http://10.0.2.2:8080
+ *   Dispositivo físico → http://<IP_DA_SUA_MAQUINA>:8080
+ */
+export const API_BASE_URL = 'http://10.0.2.2:8080';
 
-const TOKEN_KEY = "@bolao:token";
+const TOKEN_KEY = '@bolao:token';
 
 export async function getToken(): Promise<string | null> {
   return AsyncStorage.getItem(TOKEN_KEY);
 }
 
 export async function setToken(token: string): Promise<void> {
-  await AsyncStorage.setItem(TOKEN_KEY, token);
+  return AsyncStorage.setItem(TOKEN_KEY, token);
 }
 
 export async function clearToken(): Promise<void> {
-  await AsyncStorage.removeItem(TOKEN_KEY);
+  return AsyncStorage.removeItem(TOKEN_KEY);
 }
 
 export class ApiError extends Error {
-  status: number;
-  constructor(message: string, status: number) {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
     super(message);
-    this.status = status;
+    this.name = 'ApiError';
   }
 }
 
-async function buildHeaders(extra?: Record<string, string>) {
+export async function apiFetch<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
   const token = await getToken();
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...extra,
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
   };
-}
 
-async function parseError(response: Response): Promise<ApiError> {
-  let message = "Erro na requisição";
-  try {
-    const body = await response.json();
-    message = body?.message ?? body?.erro ?? message;
-  } catch {
-    // resposta sem o corpo JSON
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
-  return new ApiError(message, response.status);
-}
 
-export async function apiGet<T = any>(endpoint: string): Promise<T> {
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    headers: await buildHeaders(),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  } catch {
+    throw new ApiError('Não foi possível conectar ao servidor', 0);
+  }
 
-  if (!response.ok) throw await parseError(response);
-  return response.json();
-}
+  if (!response.ok) {
+    let message = `Erro ${response.status}`;
+    try {
+      const body = await response.json();
+      message = body.message ?? body.error ?? message;
+    } catch {
+      // ignora erro de parse
+    }
+    throw new ApiError(message, response.status);
+  }
 
-export async function apiPost<T = any>(endpoint: string, data?: any): Promise<T> {
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    method: "POST",
-    headers: await buildHeaders(),
-    body: data !== undefined ? JSON.stringify(data) : undefined,
-  });
+  if (response.status === 204) {
+    return undefined as unknown as T;
+  }
 
-  if (!response.ok) throw await parseError(response);
-  if (response.status === 204) return undefined as T;
-  return response.json();
-}
-
-export async function apiPut<T = any>(endpoint: string, data?: any): Promise<T> {
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    method: "PUT",
-    headers: await buildHeaders(),
-    body: data !== undefined ? JSON.stringify(data) : undefined,
-  });
-
-  if (!response.ok) throw await parseError(response);
-  if (response.status === 204) return undefined as T;
-  return response.json();
-}
-
-export async function apiDelete<T = any>(endpoint: string, data?: any): Promise<T> {
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    method: "DELETE",
-    headers: await buildHeaders(),
-    body: data !== undefined ? JSON.stringify(data) : undefined,
-  });
-
-  if (!response.ok) throw await parseError(response);
-  if (response.status === 204) return undefined as T;
-  return response.json();
+  return response.json() as Promise<T>;
 }

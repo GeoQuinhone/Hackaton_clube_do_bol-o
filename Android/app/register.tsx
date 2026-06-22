@@ -1,14 +1,21 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Pressable, } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Pressable,
+} from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Logo } from "./../components/Logo";
-import { AppInput } from "./../components/AppInput";
-import { AppButton } from "./../components/AppButton";
-import { useAuth } from "./../contexts/AuthContext"
-import { ApiError } from "./../utils/api";
-import { COLORS, FONTS, FONT_SIZE, SPACING, RADIUS } from "./../constants/theme";
-
+import { Logo } from "@/components/Logo";
+import { AppInput } from "@/components/AppInput";
+import { AppButton } from "@/components/AppButton";
+import { useAuth } from "@/contexts/AuthContext";
+import { ApiError } from "@/utils/api";
+import { COLORS, FONTS, FONT_SIZE, SPACING, RADIUS } from "@/constants/theme";
 
 export default function Register() {
   const { cadastrar, loading } = useAuth();
@@ -46,7 +53,7 @@ export default function Register() {
             ? "Esse e-mail já está cadastrado"
             : error.message
           : "Não foi possível conectar ao servidor";
-      setErrors({ geral: message })
+      setErrors({ geral: message });
     }
   }
 
@@ -58,10 +65,14 @@ export default function Register() {
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
-
-        <Pressable style={styles.backBtn} onPress={() => router.back()} hitSlop={10}>
-          <Ionicons nome="arrow-back" size={22} color={COLORS.textPrimary} />
+        showsVerticalScrollIndicator={false}
+      >
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => router.back()}
+          hitSlop={10}
+        >
+          <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
         </Pressable>
 
         <View style={styles.logoArea}>
@@ -72,11 +83,11 @@ export default function Register() {
 
         <View style={styles.form}>
           <AppInput
-            placeholder="Digite seu Nome:"
+            placeholder="Digite seu Nome"
             icon="person-outline"
             value={nome}
-            onChangetext={(v) => {
-              setNome(v)
+            onChangeText={(v) => {
+              setNome(v);
               clearError("nome");
             }}
             error={errors.nome}
@@ -119,21 +130,28 @@ export default function Register() {
             error={errors.confirmarSenha}
           />
 
-          {!!errors.geral && <Text style={styles.geralError}>{errors.geral}</Text>}
-
+          {!!errors.geral && (
+            <Text style={styles.geralError}>{errors.geral}</Text>
+          )}
 
           <View style={styles.submitArea}>
-            <AppButton title="Cadastrar" variant="primary" onPress={handleCadastrar} Loading={loading} />
+            <AppButton
+              title="Cadastrar"
+              variant="primary"
+              onPress={handleCadastrar}
+              loading={loading}
+            />
           </View>
         </View>
 
         <Pressable style={styles.loginLink} onPress={() => router.back()}>
           <Text style={styles.loginText}>
-            Já tem uma conta? <Text style={styles.loginTextBold}>Fazer Login</Text>
-        </Text>
-      </Pressable>
-    </ScrollView>
-    </KeyboardAvoidingView >
+            Já tem uma conta?{" "}
+            <Text style={styles.loginTextBold}>Fazer Login</Text>
+          </Text>
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -144,7 +162,6 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: SPACING.xl,
   },
-
   backBtn: {
     width: 38,
     height: 38,
@@ -154,35 +171,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: SPACING.md,
   },
-
   logoArea: {
     alignItems: "center",
     marginBottom: SPACING.lg,
   },
   title: {
-    fontFamily:FONTS.bold,
+    fontFamily: FONTS.bold,
     fontSize: FONT_SIZE.lg,
     color: COLORS.textPrimary,
     textAlign: "center",
     marginBottom: SPACING.xl,
   },
   form: {
-    width: "100%"
+    width: "100%",
   },
   geralError: {
     fontFamily: FONTS.medium,
     fontSize: FONT_SIZE.sm,
     color: COLORS.danger,
     backgroundColor: COLORS.dangerBg,
-    padding: SPACING.sm, 
+    padding: SPACING.sm,
     borderRadius: RADIUS.sm,
     marginBottom: SPACING.sm,
     textAlign: "center",
   },
-
   submitArea: {
     marginTop: SPACING.lg,
-    alignItems: "center",
   },
   loginLink: {
     marginTop: SPACING.xl,
@@ -191,7 +205,7 @@ const styles = StyleSheet.create({
   loginText: {
     fontFamily: FONTS.regular,
     fontSize: FONT_SIZE.sm,
-    color: COLORS.textSecondary
+    color: COLORS.textSecondary,
   },
   loginTextBold: {
     fontFamily: FONTS.bold,

@@ -1,39 +1,34 @@
-// Tipos alinhados ao schema do banco (Banco_de_dados/*.sql) e aos RFs da documentação
-
-export type Fase = "GRUPOS" | "OITAVAS" | "QUARTAS" | "SEMI" | "FINAL";
-export type StatusPartida = "AGENDADA" | "EM_ANDAMENTO" | "ENCERRADA";
-export type Perfil = "USER" | "ADMIN";
+export type Fase = 'GRUPOS' | 'OITAVAS' | 'QUARTAS' | 'SEMI' | 'FINAL';
+export type StatusPartida = 'AGENDADA' | 'EM_ANDAMENTO' | 'ENCERRADA';
 
 export interface Selecao {
   id: number;
   nome: string;
   codigoFifa: string;
-  bandeira?: string | null;
-  grupo?: string | null;
+  bandeira?: string;
+  grupo?: string;
 }
 
 export interface Partida {
   id: number;
-  selecaoMandante: Selecao;
-  selecaoVisitante: Selecao;
+  selecaoA: Selecao;
+  selecaoB: Selecao;
+  dataHora: string;
+  estadio?: string;
   fase: Fase;
-  estadio?: string | null;
-  dataHora: string; // ISO
-  golsMandante?: number | null;
-  golsVisitante?: number | null;
   status: StatusPartida;
-  // presente quando a API já enriquece com o palpite do usuário logado
-  meuPalpite?: Palpite | null;
+  golsA?: number;
+  golsB?: number;
+  meuPalpite?: Palpite;
 }
 
 export interface Palpite {
   id: number;
   usuarioId: number;
   partidaId: number;
-  golsMandante: number;
-  golsVisitante: number;
-  pontuacao?: number | null;
-  criadoEm?: string;
+  golsA: number;
+  golsB: number;
+  pontuacao?: number;
   partida?: Partida;
 }
 
@@ -41,39 +36,37 @@ export interface Usuario {
   id: number;
   nome: string;
   email: string;
-  fotoPerfil?: string | null;
-  perfil: Perfil;
-  bloqueado: boolean;
+  fotoPerfil?: string;
   pontuacaoTotal: number;
   placaresExatos: number;
-  criadoEm?: string;
 }
 
 export interface RankingItem {
-  posicao: number;
   usuarioId: number;
   nome: string;
-  fotoPerfil?: string | null;
+  fotoPerfil?: string;
   pontuacaoTotal: number;
   placaresExatos: number;
-  souEu?: boolean;
+  posicao: number;
+}
+
+export interface PagedResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  number: number;
+  size: number;
 }
 
 export interface DashboardResumo {
-  proximasPartidas: Partida[];
-  meusPalpitesRecentes: Palpite[];
-  minhaPosicao: number;
   meusPontos: number;
-  topRanking: RankingItem[];
+  minhaPosicao: number;
   totalPalpites: number;
+  proximasPartidas: Partida[];
+  topRanking: RankingItem[];
 }
 
-export interface LoginResponse {
+export interface AuthResponse {
   token: string;
   usuario: Usuario;
-}
-
-export interface ApiErrorBody {
-  message?: string;
-  erro?: string;
 }

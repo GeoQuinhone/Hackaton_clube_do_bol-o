@@ -1,121 +1,214 @@
-import { View, Text, StyleSheet, FlatList } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useQuery } from "@tanstack/react-query";
-import { MatchCard } from "@/components/MatchCard";
-import { LoadingState, ErrorState, EmptyState } from "@/components/States";
-import { GuessService } from "@/utils/services";
-import { COLORS, FONTS, FONT_SIZE, SPACING } from "@/constants/theme";
-import type { Palpite } from "@/types";
+import { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Pressable,
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { Logo } from "@/components/Logo";
+import { AppInput } from "@/components/AppInput";
+import { AppButton } from "@/components/AppButton";
+import { useAuth } from "@/contexts/AuthContext";
+import { ApiError } from "@/utils/api";
+import { COLORS, FONTS, FONT_SIZE, SPACING, RADIUS } from "@/constants/theme";
 
-export default function Guesses() {
-    const { data, isLoading, isError, refetch } = useQuery({
-        queryKey: ["my-guesses"],
-        queryFn: GuessService.meusPalpites,
-    });
-    const pontosTotais = (data ?? []).redunce((sum, p) => sum + (p.pontuacao ?? 0), 0);
-    const acertosExatos = (data ?? []).filter((p) => p.pontuacao === 10).length;
+export default function Register() {
+  const { cadastrar, loading } = useAuth();
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-    return (
-        <SafeAreaView style={styles.safe} edges={["top"]}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Meus Palpites</Text>
-                <Text style={styles.subtitle}>Histórico completo das suas apostas</Text>
-            </View>
+  function validar() {
+    const next: Record<string, string> = {};
+    if (!nome.trim()) next.nome = "Informe o seu nome";
+    if (!email.trim()) next.email = "Informe o seu e-mail";
+    else if (!/\S+@\S+\.\S+/.test(email)) next.email = "E-mail inválido";
+    if (!senha) next.senha = "Crie uma senha";
+    else if (senha.length < 6) next.senha = "Mínimo de 6 caracteres";
+    if (confirmarSenha !== senha) next.confirmarSenha = "As senhas não são iguais!";
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  }
 
-            {isLoading ? (
-                <LoadingState label="Carregando seus palpites..." />
-            ) : isError ? LoadingState(
-                <ErrorState subtitle="Não conseguimos carregar seus palpites." onRetry={refetch} />
-            ) : !data || data.length === 0 ? (
-                <EmptyState
-                    icon="checkmark-circle-outline"
-                    title="Você ainda não fez nenhum palpite"
-                    subtitle="Vá até a aba Partidas e registre seu primeiro palpite!"
-                />
-            ) : (
-                <>
-                    <View style={styles.statsRow}>
-                        <Statbox label="Palpites" value={String(data.length)} />
-                        <Statbox label="Placares exatos" value={String(acertosExatos)} />
-                        <Statbox label="Pontos somados" value={String(pontosTotais)} />
-                    </View>
+  function clearError(field: string) {
+    setErrors((e) => ({ ...e, [field]: "", geral: "" }));
+  }
 
-                    <FlatList
-                        data={data}
-                        keyExtractor={(item) => String(item.id)}
-                        contentContainerStyle={styles.listContet}
-                        showsVerticalScrollIndicator={false}
-                        renderItem={({ item }) => <GuessHistoryCard guess={item} />}
-                    />
-                </>
-            )}
-        </SafeAreaView>
-    );
-}
-
-function GuessHistoryCard({ guess }: { guess: Palpite }) {
-    if (guess.partida) {
-        return <MatchCard match={{ ...guess.partida, meuPalpite: guess }} />;
+  async function handleCadastrar() {
+    if (!validar()) return;
+    try {
+      await cadastrar(nome.trim(), email.trim(), senha);
+      router.replace("/(tabs)/dashboard");
+    } catch (error) {
+      const message =
+        error instanceof ApiError
+          ? error.status === 409
+            ? "Esse e-mail já está cadastrado"
+            : error.message
+          : "Não foi possível conectar ao servidor";
+      setErrors({ geral: message });
     }
-    return null;
-}
+  }
 
-function StatBox({ label, value }: { label: string; value: string }) {
-    return (
-        <View style={styles.statBox}>
-            <Text style={styles.statValue}>{value}</Text>
-            <Text style={styles.statlabel}>{label}</Text>
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: COLORS.backgroud }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => router.back()}
+          hitSlop={10}
+        >
+          <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
+        </Pressable>
+
+        <View style={styles.logoArea}>
+          <Logo size="sm" />
         </View>
-    );
+
+        <Text style={styles.title}>Faça o seu cadastro</Text>
+
+        <View style={styles.form}>
+          <AppInput
+            placeholder="Digite seu Nome"
+            icon="person-outline"
+            value={nome}
+            onChangeText={(v) => {
+              setNome(v);
+              clearError("nome");
+            }}
+            error={errors.nome}
+          />
+
+          <AppInput
+            placeholder="Digite o seu email"
+            icon="mail-outline"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={(v) => {
+              setEmail(v);
+              clearError("email");
+            }}
+            error={errors.email}
+          />
+
+          <AppInput
+            placeholder="Digite a sua senha"
+            icon="lock-closed-outline"
+            isPassword
+            value={senha}
+            onChangeText={(v) => {
+              setSenha(v);
+              clearError("senha");
+            }}
+            error={errors.senha}
+          />
+
+          <AppInput
+            placeholder="Confirme sua senha"
+            icon="lock-closed-outline"
+            isPassword
+            value={confirmarSenha}
+            onChangeText={(v) => {
+              setConfirmarSenha(v);
+              clearError("confirmarSenha");
+            }}
+            error={errors.confirmarSenha}
+          />
+
+          {!!errors.geral && (
+            <Text style={styles.geralError}>{errors.geral}</Text>
+          )}
+
+          <View style={styles.submitArea}>
+            <AppButton
+              title="Cadastrar"
+              variant="primary"
+              onPress={handleCadastrar}
+              loading={loading}
+            />
+          </View>
+        </View>
+
+        <Pressable style={styles.loginLink} onPress={() => router.back()}>
+          <Text style={styles.loginText}>
+            Já tem uma conta?{" "}
+            <Text style={styles.loginTextBold}>Fazer Login</Text>
+          </Text>
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
 }
 
 const styles = StyleSheet.create({
-    safe: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
-    header: {
-        paddingHorizontal: SPACING.xl,
-        paddingTop: SPACING.lg,
-        marginBottom: SPACING.md,
-    },
-    title: {
-        fontFamily: FONTS.extraBold,
-        fontSize: FONT_SIZE.xxl,
-        color: COLORS.textPrimary,
-    },
-    subtitle: {
-        fontFamily: FONTS.regular,
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.textSecondary,
-        marginTop: 2,
-    },
-    statsRow: {
-        flexDirection: "row",
-        paddingHorizontal: SPACING.xl,
-        gap: SPACING.sm,
-        marginBottom: SPACING.lg,
-    },
-    statBox: {
-        flex: 1,
-        backgroundColor: COLORS.surface,
-        borderRadius: 14,
-        paddingVertical: SPACING.md,
-        alignItems: "center",
-    },
-    statValue: {
-        fontFamily: FONTS.extraBold,
-        fontSize: FONT_SIZE.xl,
-        color: COLORS.navy,
-    },
-    statLabel: {
-        fontFamily: FONTS.medium,
-        fontSize: 11,
-        color: COLORS.textMuted,
-        marginTop: 2,
-    },
-    listContent: {
-        paddingHorizontal: SPACING.xl,
-        paddingBottom: SPACING.xxl,
-    },
+  container: {
+    flexGrow: 1,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: 24,
+    paddingBottom: SPACING.xl,
+  },
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: COLORS.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: SPACING.md,
+  },
+  logoArea: {
+    alignItems: "center",
+    marginBottom: SPACING.lg,
+  },
+  title: {
+    fontFamily: FONTS.bold,
+    fontSize: FONT_SIZE.lg,
+    color: COLORS.textPrimary,
+    textAlign: "center",
+    marginBottom: SPACING.xl,
+  },
+  form: {
+    width: "100%",
+  },
+  geralError: {
+    fontFamily: FONTS.medium,
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.danger,
+    backgroundColor: COLORS.dangerBg,
+    padding: SPACING.sm,
+    borderRadius: RADIUS.sm,
+    marginBottom: SPACING.sm,
+    textAlign: "center",
+  },
+  submitArea: {
+    marginTop: SPACING.lg,
+  },
+  loginLink: {
+    marginTop: SPACING.xl,
+    alignItems: "center",
+  },
+  loginText: {
+    fontFamily: FONTS.regular,
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.textSecondary,
+  },
+  loginTextBold: {
+    fontFamily: FONTS.bold,
+    color: COLORS.green,
+  },
 });
