@@ -1,4 +1,4 @@
-import { View, StyleSheet, ScrollView, RefreshControl } from "react-native";
+import { View, StyleSheet, ScrollView, RefreshControl, Alert } from "react-native";
 import { router } from "expo-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -37,10 +37,14 @@ export default function Dashboard() {
 
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+            Alert.alert("🎉 Palpite confirmado!", "Seu palpite foi registrado com sucesso. Boa sorte!");
+        },
+        onError: () => {
+            Alert.alert("Erro", "Não foi possível registrar seu palpite. Tente novamente.");
         },
     });
 
-    const firstName = user?.nome?.split(" ")[0] ?? "";
+    const firstName = user?.name?.split(" ")[0] ?? "";
 
     return (
         <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -145,7 +149,7 @@ export default function Dashboard() {
 const styles = StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: COLORS.backgroud,
     },
     container: {
         paddingHorizontal: SPACING.xl,

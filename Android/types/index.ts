@@ -17,8 +17,8 @@ export interface Partida {
   dataHora: string;       // ISO string
   fase: string;
   estadio?: string;
-  golsCasa?: number | null;
-  golsFora?: number | null;
+  golsCasa?: number | null | undefined;
+  golsFora?: number | null | undefined;
   status: StatusPartida;
   meuPalpite?: Palpite | null;
 }
@@ -29,7 +29,7 @@ export interface Palpite {
   partidaId: number;
   golsCasa: number;
   golsFora: number;
-  pontuacao?: number | null;
+  pontuacao?: number | null | undefined;
   partida?: Partida;
 }
 

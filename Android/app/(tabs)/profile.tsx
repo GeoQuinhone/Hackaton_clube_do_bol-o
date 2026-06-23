@@ -28,14 +28,14 @@ import {
 export default function Profile() {
   const { user, logout } = useAuth();
   const [editando, setEditando] = useState(false);
-  const [nome, setNome] = useState(user?.nome ?? "");
+  const [nome, setNome] = useState(user?.name ?? "");
   const [salvando, setSalvando] = useState(false);
 
   async function handleSalvar() {
     if (!nome.trim()) return;
     setSalvando(true);
     try {
-      await UserService.atualizarPerfil({ nome: nome.trim() });
+      await UserService.atualizarPerfil({ name: nome.trim() });
       setEditando(false);
     } catch {
       Alert.alert("Erro", "Não foi possível atualizar seu perfil. Tente novamente!");
@@ -94,16 +94,16 @@ export default function Profile() {
         <Text style={styles.title}>Meu Perfil</Text>
 
         <View style={styles.avatarSection}>
-          {user?.fotoPerfil ? (
+          {user?.avatarUrl ? (
             <Image
-              source={{ uri: user.fotoPerfil }}
+              source={{ uri: user.avatarUrl }}
               style={styles.avatar}
               contentFit="cover"
             />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder, SHADOW.md]}>
               <Text style={styles.avatarInitial}>
-                {(user?.nome ?? "?").charAt(0).toUpperCase()}
+                {(user?.name ?? "?").charAt(0).toUpperCase()}
               </Text>
             </View>
           )}
@@ -127,7 +127,7 @@ export default function Profile() {
                     title="Cancelar"
                     variant="outline"
                     onPress={() => {
-                      setNome(user?.nome ?? "");
+                      setNome(user?.name ?? "");
                       setEditando(false);
                     }}
                   />
@@ -147,7 +147,7 @@ export default function Profile() {
               <InfoRow
                 icon="person-outline"
                 label="Nome"
-                value={user?.nome ?? "—"}
+                value={user?.name ?? "—"}
               />
               <InfoRow
                 icon="mail-outline"

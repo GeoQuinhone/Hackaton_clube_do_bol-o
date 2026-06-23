@@ -17,16 +17,16 @@ export function ScreenHeader({ title, subtitle, user }: ScreenHeaderProps) {
         {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
       </View>
       {user &&
-        (user.fotoPerfil ? (
+        (user.avatarUrl ? (
           <Image
-            source={{ uri: user.fotoPerfil }}
+            source={{ uri: user.avatarUrl }}
             style={styles.avatar}
             contentFit="cover"
           />
         ) : (
           <View style={[styles.avatar, styles.avatarPlaceholder]}>
             <Text style={styles.avatarInitial}>
-              {(user.nome ?? '?').charAt(0).toUpperCase()}
+              {(user.name ?? '?').charAt(0).toUpperCase()}
             </Text>
           </View>
         ))}

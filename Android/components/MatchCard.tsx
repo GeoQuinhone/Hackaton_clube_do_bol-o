@@ -1,24 +1,8 @@
 import { useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View,} from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  COLORS,
-  FONTS,
-  FONT_SIZE,
-  PHASE_LABEL,
-  RADIUS,
-  SHADOW,
-  SPACING,
-  STATUS_LABEL,
-} from '@/constants/theme';
+import { COLORS, FONTS, FONT_SIZE, PHASE_LABEL, RADIUS, SHADOW, SPACING, STATUS_LABEL,} from '@/constants/theme';
 import type { Partida } from '@/types';
 
 interface MatchCardProps {
@@ -33,10 +17,10 @@ export function MatchCard({
   onSubmitGuess,
 }: MatchCardProps) {
   const [golsA, setGolsA] = useState(
-    match.meuPalpite != null ? String(match.meuPalpite.golsA) : '',
+    match.meuPalpite != null ? String(match.meuPalpite.golsCasa ?? 0) : '',
   );
   const [golsB, setGolsB] = useState(
-    match.meuPalpite != null ? String(match.meuPalpite.golsB) : '',
+    match.meuPalpite != null ? String(match.meuPalpite.golsFora ?? 0) : '',
   );
   const [submitting, setSubmitting] = useState(false);
 
@@ -61,7 +45,7 @@ export function MatchCard({
   const statusColor =
     match.status === 'EM_ANDAMENTO'
       ? COLORS.green
-      : match.status === 'ENCERRADA'
+      : match.status === 'FINALIZADA'
         ? COLORS.textMuted
         : COLORS.info;
 
@@ -80,8 +64,8 @@ export function MatchCard({
 
       <View style={styles.teamsRow}>
         <TeamBlock
-          nome={match.selecaoA.nome}
-          bandeira={match.selecaoA.bandeira}
+          nome={match.selecaoCasa.nome}
+          bandeira={match.selecaoCasa.bandeiraUrl}
           align="left"
         />
         <View style={styles.scoreBlock}>
@@ -89,7 +73,7 @@ export function MatchCard({
             <Text style={styles.vsText}>VS</Text>
           ) : (
             <Text style={styles.scoreText}>
-              {match.golsA ?? '–'} × {match.golsB ?? '–'}
+              {match.golsCasa ?? '–'} × {match.golsFora ?? '–'}
             </Text>
           )}
           <Text style={styles.dateText}>
@@ -105,19 +89,19 @@ export function MatchCard({
           </Text>
         </View>
         <TeamBlock
-          nome={match.selecaoB.nome}
-          bandeira={match.selecaoB.bandeira}
+          nome={match.selecaoFora.nome}
+          bandeira={match.selecaoFora.bandeiraUrl}
           align="right"
         />
       </View>
 
-      {match.meuPalpite && match.status === 'ENCERRADA' && (
+      {match.meuPalpite && match.status === 'FINALIZADA' && (
         <View style={styles.guessResult}>
           <Text style={styles.guessLabel}>Seu palpite: </Text>
           <Text style={styles.guessScore}>
-            {match.meuPalpite.golsA} × {match.meuPalpite.golsB}
+            {match.meuPalpite.golsCasa} × {match.meuPalpite.golsFora}
           </Text>
-          <PontuacaoBadge pontos={match.meuPalpite.pontuacao} />
+          <PontuacaoBadge pontos={match.meuPalpite.pontuacao ?? undefined} />
         </View>
       )}
 
