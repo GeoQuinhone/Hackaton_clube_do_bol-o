@@ -1,11 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
- * Troque pelo IP do servidor Spring Boot:
- *   Android Emulator  → http://10.0.2.2:8080
- *   Dispositivo físico → http://<IP_DA_SUA_MAQUINA>:8080
+ * URL base da API — inclui o prefixo /api que o Spring Boot usa.
+ *
+ *   Android Emulator  → http://10.0.2.2:8080/api
+ *   Dispositivo físico → http://<IP_DA_SUA_MAQUINA>:8080/api
+ *
+ * Para alternar sem mexer no código, defina no .env:
+ *   EXPO_PUBLIC_API_URL=http://10.0.2.2:8080/api
  */
-export const API_BASE_URL = 'http://10.0.2.2:8080';
+export const API_BASE_URL = 'http://10.0.2.2:8080/api';
 
 const TOKEN_KEY = '@bolao:token';
 
