@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Partidas - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body{background:#f0f2f5}.sidebar{min-height:100vh;background:#1a472a}
+        .sidebar .nav-link{color:rgba(255,255,255,.75);border-radius:8px;margin:2px 8px}
+        .sidebar .nav-link:hover,.sidebar .nav-link.active{color:#fff;background:rgba(255,255,255,.15)}
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div class="sidebar col-auto col-md-3 col-xl-2 px-0">
+        <div class="d-flex flex-column p-3 h-100">
+            <a href="/admin/dashboard" class="d-flex align-items-center mb-4 text-decoration-none">
+                <i class="bi bi-trophy-fill me-2" style="color:#ffd700;font-size:1.5rem"></i>
+                <span class="fw-bold" style="color:#ffd700">Bolão Copa 2026</span>
+            </a>
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li><a href="/admin/dashboard" class="nav-link"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li><a href="/admin/partidas" class="nav-link active"><i class="bi bi-calendar3 me-2"></i>Partidas</a></li>
+                <li><a href="/admin/selecoes" class="nav-link"><i class="bi bi-flag me-2"></i>Seleções</a></li>
+                <li><a href="/admin/usuarios" class="nav-link"><i class="bi bi-people me-2"></i>Usuários</a></li>
+            </ul>
+            <hr class="text-white-50">
+            <form th:action="@{/admin/logout}" method="post">
+                <button type="submit" class="btn btn-outline-light btn-sm w-100"><i class="bi bi-box-arrow-right me-1"></i>Sair</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="flex-grow-1 p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="fw-bold mb-0">Partidas</h4>
+                <p class="text-muted small mb-0">Gerencie os jogos da Copa do Mundo 2026</p>
+            </div>
+            <a href="/admin/partidas/nova" class="btn btn-success"><i class="bi bi-plus-lg me-1"></i>Nova Partida</a>
+        </div>
+
+        <div th:if="${sucesso}" class="alert alert-success alert-dismissible fade show py-2" role="alert">
+            <span th:text="${sucesso}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${erro}" class="alert alert-danger alert-dismissible fade show py-2" role="alert">
+            <span th:text="${erro}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Filtro por status -->
+        <div class="mb-3 d-flex gap-2 flex-wrap">
+            <a th:href="@{/admin/partidas}" th:class="${filtroStatus == null ? 'btn btn-success btn-sm' : 'btn btn-outline-secondary btn-sm'}">Todas</a>
+            <a th:each="s : ${statusList}"
+               th:href="@{/admin/partidas(status=${s.name()})}"
+               th:class="${filtroStatus == s.name() ? 'btn btn-success btn-sm' : 'btn btn-outline-secondary btn-sm'}"
+               th:text="${s.name().replace('_', ' ')}"></a>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Partida</th>
+                            <th>Fase</th>
+                            <th>Estádio</th>
+                            <th>Data/Hora</th>
+                            <th>Resultado</th>
+                            <th>Status</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="p : ${partidas}">
+                            <td class="ps-3 fw-semibold" th:text="${p.selecaoCasa.nome + ' x ' + p.selecaoFora.nome}"></td>
+                            <td><span class="badge bg-secondary bg-opacity-10 text-dark" th:text="${p.fase}"></span></td>
+                            <td class="text-muted small" th:text="${p.estadio ?: '-'}"></td>
+                            <td class="small" th:text="${#temporals.format(p.dataHora, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td class="fw-semibold" th:text="${p.golsCasa != null ? p.golsCasa + ' x ' + p.golsFora : '-'}"></td>
+                            <td>
+                                <span th:class="${'badge ' + (p.status.name() == 'FINALIZADA' ? 'bg-success' : p.status.name() == 'EM_ANDAMENTO' ? 'bg-warning text-dark' : p.status.name() == 'ADIADA' ? 'bg-info text-dark' : 'bg-secondary')}"
+                                      th:text="${p.status.name().replace('_',' ')}"></span>
+                            </td>
+                            <td class="text-center">
+                                <a th:if="${p.status.name() != 'FINALIZADA'}"
+                                   th:href="@{/admin/partidas/{id}/resultado(id=${p.id})}"
+                                   class="btn btn-sm btn-outline-success me-1" title="Registrar resultado">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <form th:if="${p.status.name() != 'FINALIZADA'}"
+                                      th:action="@{/admin/partidas/{id}/excluir(id=${p.id})}"
+                                      method="post" class="d-inline"
+                                      onsubmit="return confirm('Excluir esta partida?')">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </form>
+                                <span th:if="${p.status.name() == 'FINALIZADA'}" class="text-muted small">Finalizada</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(partidas)}">
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="bi bi-calendar-x fs-3 d-block mb-2 opacity-25"></i>
+                                Nenhuma partida encontrada.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
