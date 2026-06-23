@@ -31,6 +31,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+<<<<<<< HEAD
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
@@ -61,6 +62,26 @@ public class SecurityConfig {
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+=======
+            .csrf(AbstractHttpConfigurer::disable)
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                // Rotas públicas
+                .requestMatchers("/api/auth/**").permitAll()
+                // Apenas ADMIN
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // Usuário autenticado
+                .requestMatchers("/api/users/**").authenticated()
+                .requestMatchers("/api/partidas/**").authenticated()
+                .requestMatchers("/api/selecoes/**").authenticated()
+                .requestMatchers("/api/palpites/**").authenticated()
+                .requestMatchers("/api/ranking/**").authenticated()
+                .anyRequest().authenticated()
+            )
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+>>>>>>> 35a8bdfc (Enviando atualização do backend)
 
         return http.build();
     }
