@@ -13,6 +13,7 @@ import com.bolao.repository.PartidaRepository;
 import com.bolao.repository.SelecaoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,12 +22,20 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class PartidaService {
 
     private final PartidaRepository partidaRepository;
     private final SelecaoRepository selecaoRepository;
+    private final PalpiteService palpiteService;
+
+    public PartidaService(PartidaRepository partidaRepository,
+                          SelecaoRepository selecaoRepository,
+                          @Lazy PalpiteService palpiteService) {
+        this.partidaRepository = partidaRepository;
+        this.selecaoRepository = selecaoRepository;
+        this.palpiteService = palpiteService;
+    }
 
     @Transactional
     public PartidaDTO criar(PartidaRequest request) {
@@ -127,9 +136,12 @@ public class PartidaService {
 
         partida.setGolsCasa(request.getGolsCasa());
         partida.setGolsFora(request.getGolsFora());
+        partida.setStatus(Partida.StatusPartida.FINALIZADA);
 
         partidaRepository.save(partida);
         log.info("Resultado da partida {} atualizado: {} x {}", id, request.getGolsCasa(), request.getGolsFora());
+
+        palpiteService.calcularPontuacoes(id);
         return PartidaDTO.fromEntity(partida);
     }
 

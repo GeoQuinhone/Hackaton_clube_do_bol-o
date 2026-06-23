@@ -1,6 +1,8 @@
 import { View, Text, StyleSheet, ScrollView, RefreshControl, Alert } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 import { MatchCard } from "@/components/MatchCard";
 import { LoadingState, ErrorState, EmptyState } from "@/components/States";
 import { GuessService } from "@/utils/services";
@@ -13,6 +15,12 @@ export default function Guesses() {
     queryKey: ["meusPalpites"],
     queryFn: GuessService.meusPalpites,
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const editMutation = useMutation({
     mutationFn: ({ palpiteId, gm, gv }: { palpiteId: number; gm: number; gv: number }) =>
@@ -53,7 +61,17 @@ export default function Guesses() {
             palpite.partida ? (
               <MatchCard
                 key={palpite.id}
-                match={palpite.partida}
+                match={{
+                  ...palpite.partida,
+                  meuPalpite: {
+                    id: palpite.id,
+                    usuarioId: palpite.usuarioId,
+                    partidaId: palpite.partidaId,
+                    golsCasa: palpite.golsCasa,
+                    golsFora: palpite.golsFora,
+                    pontuacao: palpite.pontuacao,
+                  },
+                }}
                 onSubmitGuess={
                   palpite.partida.status === "AGENDADA"
                     ? (gm, gv) => editMutation.mutate({ palpiteId: palpite.id, gm, gv })

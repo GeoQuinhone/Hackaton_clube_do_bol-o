@@ -53,7 +53,7 @@ public class RankingService {
                     .mapToLong(p -> p.getPontuacao() != null ? p.getPontuacao() : 0)
                     .sum();
             long exatos = palpites.stream()
-                    .filter(p -> p.getPontuacao() != null && p.getPontuacao() == 3)
+                    .filter(p -> p.getPontuacao() != null && p.getPontuacao() == 10)
                     .count();
 
             lista.add(RankingItemDTO.builder()

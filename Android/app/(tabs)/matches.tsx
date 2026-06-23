@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
+import { View, Text, StyleSheet, FlatList, Pressable, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { MatchCard } from "@/components/MatchCard";
@@ -30,7 +30,7 @@ export default function Matches() {
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["matches"],
-    queryFn: () => MatchService.listar(),
+    queryFn: () => MatchService.listar().then((res) => res.content),
   });
 
   const guessMutation = useMutation({
@@ -46,6 +46,11 @@ export default function Matches() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["matches"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["meusPalpites"] });
+      Alert.alert("🎉 Palpite confirmado!", "Seu palpite foi registrado com sucesso. Boa sorte!");
+    },
+    onError: () => {
+      Alert.alert("Erro", "Não foi possível registrar seu palpite. Tente novamente.");
     },
   });
 
@@ -122,7 +127,7 @@ export default function Matches() {
                   key={match.id}
                   match={match}
                   onSubmitGuess={(gm, gv) =>
-                    guessMutation.mutateAsync({
+                    void guessMutation.mutateAsync({
                       partidaId: match.id,
                       gm,
                       gv,

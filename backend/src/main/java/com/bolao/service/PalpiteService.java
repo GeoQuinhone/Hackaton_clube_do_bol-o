@@ -103,11 +103,11 @@ public class PalpiteService {
     private int calcular(Palpite p, Partida partida) {
         boolean placarExato = p.getGolsCasa() == partida.getGolsCasa()
                 && p.getGolsFora() == partida.getGolsFora();
-        if (placarExato) return 3;
+        if (placarExato) return 10;
 
         boolean resultadoCerto = Integer.signum(p.getGolsCasa() - p.getGolsFora())
                 == Integer.signum(partida.getGolsCasa() - partida.getGolsFora());
-        if (resultadoCerto) return 1;
+        if (resultadoCerto) return 5;
 
         return 0;
     }

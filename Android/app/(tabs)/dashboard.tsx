@@ -2,6 +2,8 @@ import { View, StyleSheet, ScrollView, RefreshControl, Alert } from "react-nativ
 import { router } from "expo-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { SectionTitle } from "@/components/Card";
@@ -37,6 +39,7 @@ export default function Dashboard() {
 
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+            queryClient.invalidateQueries({ queryKey: ["meusPalpites"] });
             Alert.alert("🎉 Palpite confirmado!", "Seu palpite foi registrado com sucesso. Boa sorte!");
         },
         onError: () => {
@@ -45,6 +48,12 @@ export default function Dashboard() {
     });
 
     const firstName = user?.name?.split(" ")[0] ?? "";
+
+    useFocusEffect(
+        useCallback(() => {
+            refetch();
+        }, [refetch])
+    );
 
     return (
         <SafeAreaView style={styles.safe} edges={["top"]}>
