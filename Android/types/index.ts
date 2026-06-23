@@ -1,53 +1,58 @@
 export type Fase = 'GRUPOS' | 'OITAVAS' | 'QUARTAS' | 'SEMI' | 'FINAL';
-export type StatusPartida = 'AGENDADA' | 'EM_ANDAMENTO' | 'ENCERRADA';
+export type StatusPartida = 'AGENDADA' | 'EM_ANDAMENTO' | 'FINALIZADA';
+export type Role = 'USER' | 'ADMIN';
 
 export interface Selecao {
   id: number;
   nome: string;
-  codigoFifa: string;
-  bandeira?: string;
-  grupo?: string;
+  sigla: string;        // ex: BRA, ARG
+  bandeiraUrl?: string; // URL da bandeira
+  grupo: string;        // ex: "Grupo A"
 }
 
 export interface Partida {
   id: number;
-  selecaoA: Selecao;
-  selecaoB: Selecao;
-  dataHora: string;
+  selecaoCasa: Selecao;
+  selecaoFora: Selecao;
+  dataHora: string;       // ISO string
+  fase: string;
   estadio?: string;
-  fase: Fase;
+  golsCasa?: number | null;
+  golsFora?: number | null;
   status: StatusPartida;
-  golsA?: number;
-  golsB?: number;
-  meuPalpite?: Palpite;
+  meuPalpite?: Palpite | null;
 }
 
 export interface Palpite {
   id: number;
   usuarioId: number;
   partidaId: number;
-  golsA: number;
-  golsB: number;
-  pontuacao?: number;
+  golsCasa: number;
+  golsFora: number;
+  pontuacao?: number | null;
   partida?: Partida;
 }
 
 export interface Usuario {
   id: number;
-  nome: string;
+  name: string;         // campo real do backend
   email: string;
-  fotoPerfil?: string;
-  pontuacaoTotal: number;
-  placaresExatos: number;
+  avatarUrl?: string;
+  role: Role;
+  active: boolean;
+  // campos calculados (não vêm do backend, calculados localmente)
+  pontuacaoTotal?: number;
+  placaresExatos?: number;
 }
 
 export interface RankingItem {
+  posicao: number;
   usuarioId: number;
   nome: string;
-  fotoPerfil?: string;
+  avatarUrl?: string;
   pontuacaoTotal: number;
   placaresExatos: number;
-  posicao: number;
+  souEu?: boolean;
 }
 
 export interface PagedResponse<T> {
@@ -58,15 +63,17 @@ export interface PagedResponse<T> {
   size: number;
 }
 
+export interface AuthResponse {
+  token: string;
+  type: string;
+  user: Usuario;  // campo real: "user", não "usuario"
+}
+
+// Dashboard montado localmente pelo app a partir de chamadas separadas
 export interface DashboardResumo {
   meusPontos: number;
   minhaPosicao: number;
   totalPalpites: number;
   proximasPartidas: Partida[];
   topRanking: RankingItem[];
-}
-
-export interface AuthResponse {
-  token: string;
-  usuario: Usuario;
 }

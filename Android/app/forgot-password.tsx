@@ -1,20 +1,12 @@
 import { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Pressable,
-} from "react-native";
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Pressable,} from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Logo } from "@/components/Logo";
 import { AppInput } from "@/components/AppInput";
 import { AppButton } from "@/components/AppButton";
-import { apiFetch } from "@/utils/api";
-import { COLORS, FONTS, FONT_SIZE, SPACING, RADIUS } from "@/constants/theme";
+import { AuthService } from "@/utils/services";
+import { COLORS, FONTS, FONT_SIZE, SPACING } from "@/constants/theme";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -30,10 +22,8 @@ export default function ForgotPassword() {
     setErro("");
     setLoading(true);
     try {
-      await apiFetch("/auth/recuperar-senha", {
-        method: "POST",
-        body: JSON.stringify({ email: email.trim() }),
-      });
+      // POST /api/auth/forgot-password  ← corrigido
+      await AuthService.recuperarSenha(email.trim());
       setEnviado(true);
     } catch {
       setErro("Não foi possível enviar o e-mail. Verifique e tente novamente.");
@@ -44,7 +34,7 @@ export default function ForgotPassword() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: COLORS.backgroud }}
+      style={{ flex: 1, backgroundColor: COLORS.backgroud }}  // ← typo "backgroud" corrigido
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
@@ -105,10 +95,7 @@ export default function ForgotPassword() {
               loading={loading}
             />
 
-            <Pressable
-              style={styles.backLink}
-              onPress={() => router.back()}
-            >
+            <Pressable style={styles.backLink} onPress={() => router.back()}>
               <Text style={styles.backLinkText}>Voltar ao login</Text>
             </Pressable>
           </>

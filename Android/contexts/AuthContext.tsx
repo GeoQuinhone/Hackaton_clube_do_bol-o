@@ -1,11 +1,7 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
-import type { Usuario } from "@/types";
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { AuthService, UserService } from '@/utils/services';
+import { setToken, clearToken, getToken, ApiError } from '@/utils/api';
+import type { Usuario } from '@/types';
 
 interface AuthContextData {
   user: Usuario | null;
@@ -18,47 +14,61 @@ interface AuthContextData {
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
-// ─── Usuário falso para testes ────────────────────────────────────────────────
-const MOCK_USER: Usuario = {
-  id: 1,
-  nome: "Romario Teste",
-  email: "romario@teste.com",
-  fotoPerfil: null,
-  perfil: "USER",
-  pontuacaoTotal: 120,
-  placaresExatos: 3,
-  criadoEm: new Date().toISOString(),
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(false);
   const [bootstrapping, setBootstrapping] = useState(true);
 
+  // Restaura sessão ao abrir o app
   useEffect(() => {
-    // Simula a verificação de sessão (sem AsyncStorage por enquanto)
-    const timer = setTimeout(() => setBootstrapping(false), 500);
-    return () => clearTimeout(timer);
+    (async () => {
+      try {
+        const token = await getToken();
+        if (token) {
+          const perfil = await UserService.meuPerfil();
+          setUser(perfil);
+        }
+      } catch {
+        await clearToken();
+      } finally {
+        setBootstrapping(false);
+      }
+    })();
   }, []);
 
   async function login(email: string, senha: string) {
     setLoading(true);
-    // Simula delay de rede
-    await new Promise((r) => setTimeout(r, 800));
-    setLoading(false);
-
-    // Qualquer email/senha funciona no modo simulado
-    setUser({ ...MOCK_USER, email });
+    try {
+      // Backend espera "password", não "senha"
+      const response = await AuthService.login(email, senha);
+      await setToken(response.token);
+      // Backend retorna "user", não "usuario"
+      setUser(response.user);
+    } catch (err) {
+      if (err instanceof ApiError) throw err;
+      throw new ApiError('Não foi possível conectar ao servidor', 0);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function cadastrar(nome: string, email: string, senha: string) {
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setLoading(false);
-    setUser({ ...MOCK_USER, nome, email });
+    try {
+      // Backend espera "name" e "password"
+      const response = await AuthService.cadastrar(nome, email, senha);
+      await setToken(response.token);
+      setUser(response.user);
+    } catch (err) {
+      if (err instanceof ApiError) throw err;
+      throw new ApiError('Não foi possível conectar ao servidor', 0);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function logout() {
+    await clearToken();
     setUser(null);
   }
 
